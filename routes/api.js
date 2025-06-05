@@ -9,6 +9,8 @@ connectDB();
 const Cost = require('../models/costs'); //reference to the collection costs
 const User = require('../models/users'); //reference to the collection users
 
+
+
 router.post('/add', (req, res) => {
     // Extract data from request body
     const { description, category, userid, sum, year, month, day } = req.body;
@@ -119,5 +121,40 @@ router.get('/report', async function(req, res, next) {
             res.status(500).json({ error: error.message });
         }
     });
+
+
+router.get('/users/:id', async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const user = await User.findOne({ id });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        const costs = await Cost.aggregate([
+            { $match: { userid: id } },
+            { $group: { _id: null, total: { $sum: "$sum" } } }
+        ]);
+
+        res.json({
+            id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            total: costs[0]?.total || 0
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/about', async (req, res) => {
+    try {
+        const team = await User.find({}, { _id: 0, first_name: 1, last_name: 1 });
+        res.json(team);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+
 
 module.exports = router;
