@@ -44,6 +44,8 @@ describe('GET /api/report', () => {
     });
 });
 
+
+
 describe('GET /api/users/:id', () => {
     it('should return user details and total cost', async () => {
         const response = await request(app).get('/api/users/123123');

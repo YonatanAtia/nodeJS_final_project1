@@ -52,7 +52,8 @@ router.post('/add', (req, res) => {
         });
 });
 
-router.get('/report', async function(req, res, next) {
+router.get('/report',
+    async function (req, res, next) {
         try {
             const id = req.query.id;
             const year = req.query.year;
@@ -89,7 +90,7 @@ router.get('/report', async function(req, res, next) {
                         costs: {
                             $push: {
                                 $arrayToObject: [[
-                                    { k: "$_id", v: "$items" }
+                                    {k: "$_id", v: "$items"}
                                 ]]
                             }
                         }
@@ -114,11 +115,25 @@ router.get('/report', async function(req, res, next) {
                 month: parseInt(month),
                 costs: result[0]?.costs || []
             };
+            const requiredCategories = ["food", "health", "housing", "sport", "education"];
+            const categoryMap = {};
+
+
+            (result[0]?.costs || []).forEach(group => {
+                const [category, items] = Object.entries(group)[0];
+                categoryMap[category] = items;
+            });
+
+
+            const costs = requiredCategories.map(cat => ({
+                [cat]: categoryMap[cat] || []
+            }));
+
 
             res.json(response);
 
         } catch (error) {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({error: error.message});
         }
     });
 
